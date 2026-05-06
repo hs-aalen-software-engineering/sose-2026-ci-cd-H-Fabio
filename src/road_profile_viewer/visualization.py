@@ -1,6 +1,9 @@
 import numpy as np
 import plotly.graph_objects as go
-from dash import Dash, Input, Output, dcc, html
+from dash import Dash, Output, html
+from dash import Input as DashInput
+from dash.dcc.Graph import Graph as DccGraph
+from dash.dcc.Input import Input as DccInput
 
 from road_profile_viewer.geometry import find_intersection
 from road_profile_viewer.road import generate_road_profile
@@ -34,7 +37,7 @@ def create_dash_app() -> Dash:
                     "Camera Ray Angle (degrees from horizontal):",
                     style={"fontWeight": "bold", "marginRight": "10px"},
                 ),
-                dcc.Input(
+                DccInput(
                     id="angle-input",
                     type="number",
                     value=-1.1,
@@ -56,7 +59,7 @@ def create_dash_app() -> Dash:
                 "padding": "10px",
             },
         ),
-        dcc.Graph(id="road-profile-graph", style={"height": "400px"}),
+        DccGraph(id="road-profile-graph", style={"height": "400px"}),
         html.Div(
             [
                 html.H3("Instructions:", style={"color": "#2c3e50"}),
@@ -80,12 +83,12 @@ def create_dash_app() -> Dash:
     ])
 
     # Define the callback to update the graph
-    @app.callback(
+    @app.callback(  # pyright: ignore[reportUnknownMemberType]
         [
             Output("road-profile-graph", "figure"),
             Output("intersection-info", "children"),
         ],
-        [Input("angle-input", "value")],
+        [DashInput("angle-input", "value")],
     )
     def update_graph(angle: float | None) -> tuple[go.Figure, str]:  # pyright: ignore[reportUnusedFunction]
         """
@@ -180,6 +183,7 @@ def create_dash_app() -> Dash:
         # Add intersection point if it exists
         info_text = ""
         if x_intersect is not None:
+            assert y_intersect is not None
             hover_text = (
                 f"Intersection Point<br>Position: ({x_intersect:.2f}, {y_intersect:.2f})<br>"
                 f"Distance from camera: {distance:.2f}<extra></extra>"
